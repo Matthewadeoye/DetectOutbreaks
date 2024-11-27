@@ -182,6 +182,27 @@ checkB<- function(df){
   return(success)
 }
 
+#Extract posterior credible interval
+posterior_interval_custom <- function(posterior_samples, prob = 0.95) {
+  # Check if the input is a matrix
+  if (!is.matrix(posterior_samples)) {
+    stop("Input must be a matrix where rows are samples and columns are variables.")
+  }
+
+  lower <- (1 - prob) / 2
+  upper <- 1 - lower
+
+  # Apply quantile function across columns
+  credible_intervals <- apply(posterior_samples, 2, quantile, probs = c(lower, upper))
+
+  # Convert to dataframe and label rows
+  credible_intervals_df <- as.data.frame(t(credible_intervals))
+  colnames(credible_intervals_df) <- c("2.5%", "97.5%")
+
+  return(credible_intervals_df)
+}
+
+
 #custom legend
 add_legend <- function(...) {
   opar <- par(fig=c(0, 1, 0, 1), oma=c(0, 0, 0, 0),

@@ -22,6 +22,4 @@ Imports:
     mvtnorm,
     Rcpp,
     reshape2,
-    rstan,
-    rstanarm,
     stats

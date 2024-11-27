@@ -130,20 +130,20 @@ inf.plot<- function(inf.object){
   sPosterior<- inf.object[, startsWith(colnames(inf.object), "s[")]
   inf.r<- colMeans(rPosterior)
   inf.s<- colMeans(sPosterior)
-  uCI.r<- rstanarm::posterior_interval(as.matrix.data.frame(rPosterior))[,2]
-  lCI.r<- rstanarm::posterior_interval(as.matrix.data.frame(rPosterior))[,1]
-  uCI.s<- rstanarm::posterior_interval(as.matrix.data.frame(sPosterior))[,2]
-  lCI.s<- rstanarm::posterior_interval(as.matrix.data.frame(sPosterior))[,1]
+  uCI.r<- posterior_interval_custom(as.matrix.data.frame(rPosterior))[,2]
+  lCI.r<- posterior_interval_custom(as.matrix.data.frame(rPosterior))[,1]
+  uCI.s<- posterior_interval_custom(as.matrix.data.frame(sPosterior))[,2]
+  lCI.s<- posterior_interval_custom(as.matrix.data.frame(sPosterior))[,1]
   }else{
   inf.r<- colMeans(as.data.frame(inf.object$draws(variables = "r")[,1,]))
-  uCI.r<- rstanarm::posterior_interval(as.matrix.data.frame(inf.object$draws(variables = "r")[,1,]))[,2]
-  lCI.r<- rstanarm::posterior_interval(as.matrix.data.frame(inf.object$draws(variables = "r")[,1,]))[,1]
+  uCI.r<- posterior_interval_custom(as.matrix.data.frame(inf.object$draws(variables = "r")[,1,]))[,2]
+  lCI.r<- posterior_interval_custom(as.matrix.data.frame(inf.object$draws(variables = "r")[,1,]))[,1]
   inf.s<- colMeans(as.data.frame(inf.object$draws(variables = "s")[,1,]))
-  uCI.s<- rstanarm::posterior_interval(as.matrix.data.frame(inf.object$draws(variables = "s")[,1,]))[,2]
-  lCI.s<- rstanarm::posterior_interval(as.matrix.data.frame(inf.object$draws(variables = "s")[,1,]))[,1]
+  uCI.s<- posterior_interval_custom(as.matrix.data.frame(inf.object$draws(variables = "s")[,1,]))[,2]
+  lCI.s<- posterior_interval_custom(as.matrix.data.frame(inf.object$draws(variables = "s")[,1,]))[,1]
   inf.u<- colMeans(as.data.frame(inf.object$draws(variables = "uconstrained")[,1,]))
-  uCI.u<- rstanarm::posterior_interval(as.matrix.data.frame(inf.object$draws(variables = "uconstrained")[,1,]))[,2]
-  lCI.u<- rstanarm::posterior_interval(as.matrix.data.frame(inf.object$draws(variables = "uconstrained")[,1,]))[,1]
+  uCI.u<- posterior_interval_custom(as.matrix.data.frame(inf.object$draws(variables = "uconstrained")[,1,]))[,2]
+  lCI.u<- posterior_interval_custom(as.matrix.data.frame(inf.object$draws(variables = "uconstrained")[,1,]))[,1]
   }
 
   par(mfrow=c(1,2))
@@ -321,17 +321,17 @@ publicationfigs1<- function(all.infobjects, all.simobjects, adjmat){
       }
     }
     inf.r<- colMeans(fullr.draws)
-    uCI.r<- rstanarm::posterior_interval(as.matrix.data.frame(fullr.draws))[,2]
-    lCI.r<- rstanarm::posterior_interval(as.matrix.data.frame(fullr.draws))[,1]
+    uCI.r<- posterior_interval_custom(as.matrix.data.frame(fullr.draws))[,2]
+    lCI.r<- posterior_interval_custom(as.matrix.data.frame(fullr.draws))[,1]
     inf.s<- colMeans(fulls.draws)
-    uCI.s<- rstanarm::posterior_interval(as.matrix.data.frame(fulls.draws))[,2]
-    lCI.s<- rstanarm::posterior_interval(as.matrix.data.frame(fulls.draws))[,1]
+    uCI.s<- posterior_interval_custom(as.matrix.data.frame(fulls.draws))[,2]
+    lCI.s<- posterior_interval_custom(as.matrix.data.frame(fulls.draws))[,1]
     inf.u<- colMeans(fullu.draws)
-    uCI.u<- rstanarm::posterior_interval(as.matrix.data.frame(fullu.draws))[,2]
-    lCI.u<- rstanarm::posterior_interval(as.matrix.data.frame(fullu.draws))[,1]
+    uCI.u<- posterior_interval_custom(as.matrix.data.frame(fullu.draws))[,2]
+    lCI.u<- posterior_interval_custom(as.matrix.data.frame(fullu.draws))[,1]
     inf.Y<- colMeans(sum_Y)
-    uCI.Y<- rstanarm::posterior_interval(as.matrix.data.frame(sum_Y))[,2]
-    lCI.Y<- rstanarm::posterior_interval(as.matrix.data.frame(sum_Y))[,1]
+    uCI.Y<- posterior_interval_custom(as.matrix.data.frame(sum_Y))[,2]
+    lCI.Y<- posterior_interval_custom(as.matrix.data.frame(sum_Y))[,1]
 
     plot(0, type = "n", xlim = c(1,length(sim.r)), ylim = c(min(lCI.r, sim.r), max(uCI.r, sim.r)), ylab = "Trend component", xlab = "Time [month]")
     polygon(c(1:length(sim.r), rev(1:length(sim.r))), c(lCI.r, rev(uCI.r)),
@@ -914,17 +914,17 @@ publicationfigs6<- function(all.infobjects,  realdata, adjmat){
       }
     }
     inf.r<- colMeans(fullr.draws)
-    uCI.r<- rstanarm::posterior_interval(as.matrix.data.frame(fullr.draws))[,2]
-    lCI.r<- rstanarm::posterior_interval(as.matrix.data.frame(fullr.draws))[,1]
+    uCI.r<- posterior_interval_custom(as.matrix.data.frame(fullr.draws))[,2]
+    lCI.r<- posterior_interval_custom(as.matrix.data.frame(fullr.draws))[,1]
     inf.s<- colMeans(fulls.draws)
-    uCI.s<- rstanarm::posterior_interval(as.matrix.data.frame(fulls.draws))[,2]
-    lCI.s<- rstanarm::posterior_interval(as.matrix.data.frame(fulls.draws))[,1]
+    uCI.s<- posterior_interval_custom(as.matrix.data.frame(fulls.draws))[,2]
+    lCI.s<- posterior_interval_custom(as.matrix.data.frame(fulls.draws))[,1]
     inf.u<- colMeans(fullu.draws)
-    uCI.u<- rstanarm::posterior_interval(as.matrix.data.frame(fullu.draws))[,2]
-    lCI.u<- rstanarm::posterior_interval(as.matrix.data.frame(fullu.draws))[,1]
+    uCI.u<- posterior_interval_custom(as.matrix.data.frame(fullu.draws))[,2]
+    lCI.u<- posterior_interval_custom(as.matrix.data.frame(fullu.draws))[,1]
     inf.Y<- colMeans(sum_Y)
-    uCI.Y<- rstanarm::posterior_interval(as.matrix.data.frame(sum_Y))[,2]
-    lCI.Y<- rstanarm::posterior_interval(as.matrix.data.frame(sum_Y))[,1]
+    uCI.Y<- posterior_interval_custom(as.matrix.data.frame(sum_Y))[,2]
+    lCI.Y<- posterior_interval_custom(as.matrix.data.frame(sum_Y))[,1]
 
     plot(0, type = "n", xaxt = "n", xlim = c(1,ncol(y)), ylim = c(min(lCI.Y, y, na.rm = T), max(uCI.Y, y, na.rm = T)), ylab = "Overall case counts", xlab = "Time [month/year]")
     polygon(c(1:length(inf.Y), rev(1:length(inf.Y))), c(lCI.Y, rev(uCI.Y)),
