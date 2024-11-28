@@ -40,13 +40,24 @@ devtools::install_github("Matthewadeoye/DetectOutbreaks")
 This is a basic example which shows you how to simulate and visualize
 space-time data from the null model:
 
-    #> 
-    #> Attaching package: 'DetectOutbreaks'
-    #> The following object is masked from 'package:stats':
-    #> 
-    #>     simulate
+``` r
+library(DetectOutbreaks)
+#> 
+#> Attaching package: 'DetectOutbreaks'
+#> The following object is masked from 'package:stats':
+#> 
+#>     simulate
+sim_adjmat<- matrix(0, nrow = 9, ncol = 9)
+uppertriang<- c(1,0,1,0,0,0,0,0,1,0,1,0,0,0,0,0,0,1,0,0,0,1,0,1,0,0,1,0,1,0,0,0,1,1,0,1)
+gdata::upperTriangle(sim_adjmat, byrow=TRUE)<- uppertriang
+gdata::lowerTriangle(sim_adjmat, byrow=FALSE)<- uppertriang
+set.seed(0); TRUTHS<- simulate(Model = 0, time = 60, adj.matrix = sim_adjmat)
+sim.plot(sim.object = TRUTHS)
+```
 
 <img src="man/figures/README-simulation-1.png" width="100%" /><img src="man/figures/README-simulation-2.png" width="100%" />
+
+<img src="man/figures/README-figures-1.png" width="100%" /><img src="man/figures/README-figures-2.png" width="100%" />
 
 We can perform Bayesian inference using either HMC in Stan or a bespoke
 MCMC algorithm in DetectOutbreaks:

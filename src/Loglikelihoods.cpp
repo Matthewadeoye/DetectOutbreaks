@@ -73,7 +73,11 @@ double GeneralLoglikelihood_cpp(NumericMatrix y, NumericVector r, NumericVector 
 
     for(int i = 0; i < ndept; ++i) {
       for(int t = 0; t < time; ++t) {
+        if(y(i, t) == -1){
+          log_likelihood(i, t) = 0;
+        }else{
         log_likelihood(i, t) = R::dpois(y(i, t), e_it(i, t) * exp(r[t] + s[t] + u[i]), true);
+        }
       }
     }
 
@@ -92,20 +96,36 @@ double GeneralLoglikelihood_cpp(NumericMatrix y, NumericVector r, NumericVector 
     NumericVector rowlogsumexp(ndept);
 
     for(int i = 0; i < ndept; ++i) {
+      if(y(i, 0) == -1){
+        alpha(0, 0) = init_density[0];
+        alpha(0, 1) = 0;
+        beta(0, 0) = 0;
+        beta(0, 1) = init_density[1];
+      }else{
       alpha(0, 0) = init_density[0] + R::dpois(y(i, 0), e_it(i, 0) * exp(r[0] + s[0] + u[i]), true);
       alpha(0, 1) = 0;
       beta(0, 0) = 0;
       beta(0, 1) = init_density[1] + R::dpois(y(i, 0), e_it(i, 0) * exp(r[0] + s[0] + u[i] + B[0] * z_it(i, 0)), true);
+      }
       Alphas(0, 0) = alpha(0, 0);
       Alphas(0, 1) = beta(0, 1);
 
       for(int t = 1; t < time; ++t) {
+        if(y(i, t) == -1){
+          alpha(t, 0) = Alphas(t-1, 0) + gamma_11;
+          alpha(t, 1) = Alphas(t-1, 1) + gamma_21;
+          beta(t, 0) = Alphas(t-1, 0) + gamma_12;
+          beta(t, 1) = Alphas(t-1, 1) + gamma_22;
+          Alphas(t, 0) = logSumExp_cpp(alpha(t, _));
+          Alphas(t, 1) = logSumExp_cpp(beta(t, _));
+        }else{
         alpha(t, 0) = Alphas(t-1, 0) + gamma_11 + R::dpois(y(i, t), e_it(i, t) * exp(r[t] + s[t] + u[i]), true);
         alpha(t, 1) = Alphas(t-1, 1) + gamma_21 + R::dpois(y(i, t), e_it(i, t) * exp(r[t] + s[t] + u[i]), true);
         beta(t, 0) = Alphas(t-1, 0) + gamma_12 + R::dpois(y(i, t), e_it(i, t) * exp(r[t] + s[t] + u[i] + B[0] * z_it(i, t)), true);
         beta(t, 1) = Alphas(t-1, 1) + gamma_22 + R::dpois(y(i, t), e_it(i, t) * exp(r[t] + s[t] + u[i] + B[0] * z_it(i, t)), true);
         Alphas(t, 0) = logSumExp_cpp(alpha(t, _));
         Alphas(t, 1) = logSumExp_cpp(beta(t, _));
+        }
       }
 
       log_forward_probs(i, 0) = logSumExp_cpp(alpha(time-1, _));
@@ -131,20 +151,36 @@ double GeneralLoglikelihood_cpp(NumericMatrix y, NumericVector r, NumericVector 
     NumericVector rowlogsumexp(ndept);
 
     for(int i = 0; i < ndept; ++i) {
+      if(y(i, 0) == -1){
+        alpha(0, 0) = init_density[0];
+        alpha(0, 1) = 0;
+        beta(0, 0) = 0;
+        beta(0, 1) = init_density[1];
+      }else{
       alpha(0, 0) = init_density[0] + R::dpois(y(i, 0), e_it(i, 0) * exp(r[0] + s[0] + u[i]), true);
       alpha(0, 1) = 0;
       beta(0, 0) = 0;
       beta(0, 1) = init_density[1] + R::dpois(y(i, 0), e_it(i, 0) * exp(r[0] + s[0] + u[i] + B[0] * z_it(i, 0) + B[1] * z_it2(i, 0)), true);
+      }
       Alphas(0, 0) = alpha(0, 0);
       Alphas(0, 1) = beta(0, 1);
 
       for(int t = 1; t < time; ++t) {
+        if(y(i, t) == -1){
+          alpha(t, 0) = Alphas(t-1, 0) + gamma_11;
+          alpha(t, 1) = Alphas(t-1, 1) + gamma_21;
+          beta(t, 0) = Alphas(t-1, 0) + gamma_12;
+          beta(t, 1) = Alphas(t-1, 1) + gamma_22;
+          Alphas(t, 0) = logSumExp_cpp(alpha(t, _));
+          Alphas(t, 1) = logSumExp_cpp(beta(t, _));
+        }else{
         alpha(t, 0) = Alphas(t-1, 0) + gamma_11 + R::dpois(y(i, t), e_it(i, t) * exp(r[t] + s[t] + u[i]), true);
         alpha(t, 1) = Alphas(t-1, 1) + gamma_21 + R::dpois(y(i, t), e_it(i, t) * exp(r[t] + s[t] + u[i]), true);
         beta(t, 0) = Alphas(t-1, 0) + gamma_12 + R::dpois(y(i, t), e_it(i, t) * exp(r[t] + s[t] + u[i] + B[0] * z_it(i, t) + B[1] * z_it2(i, t)), true);
         beta(t, 1) = Alphas(t-1, 1) + gamma_22 + R::dpois(y(i, t), e_it(i, t) * exp(r[t] + s[t] + u[i] + B[0] * z_it(i, t) + B[1] * z_it2(i, t)), true);
         Alphas(t, 0) = logSumExp_cpp(alpha(t, _));
         Alphas(t, 1) = logSumExp_cpp(beta(t, _));
+        }
       }
 
       log_forward_probs(i, 0) = logSumExp_cpp(alpha(time-1, _));

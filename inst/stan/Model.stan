@@ -304,7 +304,11 @@ if(Model == 1 || Model == 2 || Model == 3 || Model == 4 || Model == 5 || Model =
 
   for (i in 1:ndept) {
     for (t in 1:time) {
+      if(y[i, t] == -1){
+        allLoglikelihood[i, t] = 0;
+      }else{
          allLoglikelihood[i, t] = poisson_lpmf(y[i, t] | e_it[i, t] * exp(r[t] + s[t] + u[i]));
+      }
    }
 }
       real fullLogLikelihood = sum(allLoglikelihood);
@@ -318,24 +322,37 @@ if(Model == 1 || Model == 2 || Model == 3 || Model == 4 || Model == 5 || Model =
   for (i in 1:ndept) {
 
   // Initialization of the first time step for each department
-
+    if(y[i, 1] == -1){
+    alpha[1, 1] = log(init_density[1]);
+    alpha[1, 2] = 0;
+    beta[1, 1] = 0;
+    beta[1, 2] = log(init_density[2]);
+  }else{
     alpha[1, 1] = log(init_density[1]) + poisson_lpmf(y[i, 1] | e_it[i, 1] * exp(r[1] + s[1] + u[i]));
     alpha[1, 2] = 0;
     beta[1, 1] = 0;
     beta[1, 2] = log(init_density[2]) + poisson_lpmf(y[i, 1] | e_it[i, 1] * exp(r[1] + s[1] + u[i] + (B[1] * z_it[i, 1])));
-
+  }
     Alphas[1, 1] = alpha[1, 1];
     Alphas[1, 2] = beta[1, 2];
 
   // Dynamic programming loop for the remaining time steps
       for (t in 2:time) {
-
+        if(y[i, t] == -1){
+         alpha[t, 1] = Alphas[t-1, 1] + log(gamma[1, 1]);
+         alpha[t, 2] = Alphas[t-1, 2] + log(gamma[2, 1]);
+         beta[t, 1] =  Alphas[t-1, 1] + log(gamma[1, 2]);
+         beta[t, 2] =  Alphas[t-1, 2] + log(gamma[2, 2]);
+         Alphas[t, 1] = log_sum_exp(alpha[t,]);
+         Alphas[t, 2] = log_sum_exp(beta[t,]);
+        }else{
          alpha[t, 1] = Alphas[t-1, 1] + log(gamma[1, 1]) + poisson_lpmf(y[i, t] | e_it[i, t] * exp(r[t] + s[t] + u[i]));
          alpha[t, 2] = Alphas[t-1, 2] + log(gamma[2, 1]) + poisson_lpmf(y[i, t] | e_it[i, t] * exp(r[t] + s[t] + u[i]));
          beta[t, 1] =  Alphas[t-1, 1] + log(gamma[1, 2]) + poisson_lpmf(y[i, t] | e_it[i, t] * exp(r[t] + s[t] + u[i] + (B[1] * z_it[i, t])));
          beta[t, 2] =  Alphas[t-1, 2] + log(gamma[2, 2]) + poisson_lpmf(y[i, t] | e_it[i, t] * exp(r[t] + s[t] + u[i] + (B[1] * z_it[i, t])));
          Alphas[t, 1] = log_sum_exp(alpha[t,]);
          Alphas[t, 2] = log_sum_exp(beta[t,]);
+        }
 }
 
       // save the final forward probabilities
@@ -359,24 +376,37 @@ if(Model == 1 || Model == 2 || Model == 3 || Model == 4 || Model == 5 || Model =
   for (i in 1:ndept) {
 
   // Initialization of the first time step for each department
-
+    if(y[i, 1] == -1){
+    alpha[1, 1] = log(init_density[1]);
+    alpha[1, 2] = 0;
+    beta[1, 1] = 0;
+    beta[1, 2] = log(init_density[2]);
+  }else{
     alpha[1, 1] = log(init_density[1]) + poisson_lpmf(y[i, 1] | e_it[i, 1] * exp(r[1] + s[1] + u[i]));
     alpha[1, 2] = 0;
     beta[1, 1] = 0;
     beta[1, 2] = log(init_density[2]) + poisson_lpmf(y[i, 1] | e_it[i, 1] * exp(r[1] + s[1] + u[i] + (B[1] * z_it[i, 1]) + (B[2] * z_it2[i, 1])));
-
+}
     Alphas[1, 1] = alpha[1, 1];
     Alphas[1, 2] = beta[1, 2];
 
   // Dynamic programming loop for the remaining time steps
       for (t in 2:time) {
-
+         if(y[i, t] == -1){
+         alpha[t, 1] = Alphas[t-1, 1] + log(gamma[1, 1]);
+         alpha[t, 2] = Alphas[t-1, 2] + log(gamma[2, 1]);
+         beta[t, 1] =  Alphas[t-1, 1] + log(gamma[1, 2]);
+         beta[t, 2] =  Alphas[t-1, 2] + log(gamma[2, 2]);
+         Alphas[t, 1] = log_sum_exp(alpha[t,]);
+         Alphas[t, 2] = log_sum_exp(beta[t,]);
+        }else{
          alpha[t, 1] = Alphas[t-1, 1] + log(gamma[1, 1]) + poisson_lpmf(y[i, t] | e_it[i, t] * exp(r[t] + s[t] + u[i]));
          alpha[t, 2] = Alphas[t-1, 2] + log(gamma[2, 1]) + poisson_lpmf(y[i, t] | e_it[i, t] * exp(r[t] + s[t] + u[i]));
          beta[t, 1] =  Alphas[t-1, 1] + log(gamma[1, 2]) + poisson_lpmf(y[i, t] | e_it[i, t] * exp(r[t] + s[t] + u[i] + (B[1] * z_it[i, t]) + (B[2] * z_it2[i, t])));
          beta[t, 2] =  Alphas[t-1, 2] + log(gamma[2, 2]) + poisson_lpmf(y[i, t] | e_it[i, t] * exp(r[t] + s[t] + u[i] + (B[1] * z_it[i, t]) + (B[2] * z_it2[i, t])));
          Alphas[t, 1] = log_sum_exp(alpha[t,]);
          Alphas[t, 2] = log_sum_exp(beta[t,]);
+        }
 }
       // save the final forward probabilities
 
