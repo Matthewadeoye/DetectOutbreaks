@@ -1,5 +1,5 @@
 
-#' A function to compute the marginal log-likelihood for model comparison purposes
+#' A function to compute the marginal log-likelihood for model comparison purposes in the spatio-temporal models presented in (Adeoye, et.al., 2025).
 #'
 #' @param y A space-time data matrix (locations on the row, and time on the columns).
 #' @param e_it A space-time data matrix showing the number of susceptible individuals.
@@ -24,6 +24,7 @@ ModelEvidence<- function(y, e_it, adjmat, Model, inf.object, num_samples = 50000
 
   R<- -1 * adjmat
   diag(R)<- -rowSums(R, na.rm = T)
+  rankdef<- nrow(R)-qr(R)$rank
 
   design_matrix_func <- get(paste0("DesignMatrixModel", Model))
   z_it <- design_matrix_func(y, adjmat)[[1]]
@@ -96,7 +97,7 @@ ModelEvidence<- function(y, e_it, adjmat, Model, inf.object, num_samples = 50000
             dgamma(kappaU, shape = 1, rate = 0.01, log = TRUE) +
             randomwalk2(r, kappaR) +
             seasonalComp2(s, kappaS, SMat) +
-            logIGMRF1(u, kappaU, R)
+            logIGMRF1(u, kappaU, R, rankdef)
           - mvnfast::dmvt(theta, mu = mu, sigma = varcov, df = 3, log = TRUE)
         }
       }else if(Model %in% c(1,2,3,4,5,6,7)){
@@ -122,7 +123,7 @@ ModelEvidence<- function(y, e_it, adjmat, Model, inf.object, num_samples = 50000
             dgamma(kappaU, shape = 1, rate = 0.01, log = TRUE) +
             randomwalk2(r, kappaR) +
             seasonalComp2(s, kappaS, SMat) +
-            logIGMRF1(u, kappaU, R) +
+            logIGMRF1(u, kappaU, R, rankdef) +
             sum(dgamma(ARcoeff, shape = rep(2, length(ARcoeff)), rate = rep(2, length(ARcoeff)), log = TRUE))
           - mvnfast::dmvt(theta, mu = mu, sigma = varcov, df = 3, log = TRUE)
         }
@@ -149,7 +150,7 @@ ModelEvidence<- function(y, e_it, adjmat, Model, inf.object, num_samples = 50000
             dgamma(kappaU, shape = 1, rate = 0.01, log = TRUE) +
             randomwalk2(r, kappaR) +
             seasonalComp2(s, kappaS, SMat) +
-            logIGMRF1(u, kappaU, R)
+            logIGMRF1(u, kappaU, R, rankdef)
           - mvtnorm::dmvt(theta, delta = mu, sigma = varcov, df = 3, log = TRUE)
         }
       }else if(Model %in% c(1,2,3,4,5,6,7)){
@@ -175,7 +176,7 @@ ModelEvidence<- function(y, e_it, adjmat, Model, inf.object, num_samples = 50000
             dgamma(kappaU, shape = 1, rate = 0.01, log = TRUE) +
             randomwalk2(r, kappaR) +
             seasonalComp2(s, kappaS, SMat) +
-            logIGMRF1(u, kappaU, R) +
+            logIGMRF1(u, kappaU, R, rankdef) +
             sum(dgamma(ARcoeff, shape = rep(2, length(ARcoeff)), rate = rep(2, length(ARcoeff)), log = TRUE))
           - mvtnorm::dmvt(theta, delta = mu, sigma = varcov, df = 3, log = TRUE)
         }
@@ -188,7 +189,7 @@ ModelEvidence<- function(y, e_it, adjmat, Model, inf.object, num_samples = 50000
 }
 
 
-#' A function to compute the marginal log-likelihood for model comparison purposes
+#' A function to compute the marginal log-likelihood for model comparison purposes in the spatio-temporal models presented in (Knorr-Held, et.al., 2003).
 #'
 #' @param y A space-time data matrix (locations on the row, and time on the columns).
 #' @param e_it A space-time data matrix showing the number of susceptible individuals.
@@ -213,6 +214,7 @@ ModelEvidence.old<- function(y, e_it, adjmat, Model, inf.object, num_samples = 1
 
   R<- -1 * adjmat
   diag(R)<- -rowSums(R, na.rm = T)
+  rankdef<- nrow(R)-qr(R)$rank
 
   design_matrix_func <- get(paste0("DesignMatrixModel", Model))
   z_it <- design_matrix_func(y, adjmat)[[1]]
@@ -274,7 +276,7 @@ ModelEvidence.old<- function(y, e_it, adjmat, Model, inf.object, num_samples = 1
             dgamma(kappaU, shape = 1, rate = 0.01, log = TRUE) +
             randomwalk2(r, kappaR) +
             seasonalComp(s, kappaS) +
-            logIGMRF1(u, kappaU, R)
+            logIGMRF1(u, kappaU, R, rankdef)
           - mvnfast::dmvt(theta, mu = mu, sigma = varcov, df = 3, log = TRUE)
         }
       }else if(Model %in% c(1,2,3,4,5,6,7)){
@@ -300,7 +302,7 @@ ModelEvidence.old<- function(y, e_it, adjmat, Model, inf.object, num_samples = 1
             dgamma(kappaU, shape = 1, rate = 0.01, log = TRUE) +
             randomwalk2(r, kappaR) +
             seasonalComp(s, kappaS) +
-            logIGMRF1(u, kappaU, R) +
+            logIGMRF1(u, kappaU, R, rankdef) +
             sum(dgamma(ARcoeff, shape = rep(2, length(ARcoeff)), rate = rep(2, length(ARcoeff)), log = TRUE))
           - mvnfast::dmvt(theta, mu = mu, sigma = varcov, df = 3, log = TRUE)
         }
@@ -327,7 +329,7 @@ ModelEvidence.old<- function(y, e_it, adjmat, Model, inf.object, num_samples = 1
             dgamma(kappaU, shape = 1, rate = 0.01, log = TRUE) +
             randomwalk2(r, kappaR) +
             seasonalComp(s, kappaS) +
-            logIGMRF1(u, kappaU, R)
+            logIGMRF1(u, kappaU, R, rankdef)
           - mvtnorm::dmvt(theta, delta = mu, sigma = varcov, df = 3, log = TRUE)
         }
       }else if(Model %in% c(1,2,3,4,5,6,7)){
@@ -353,7 +355,7 @@ ModelEvidence.old<- function(y, e_it, adjmat, Model, inf.object, num_samples = 1
             dgamma(kappaU, shape = 1, rate = 0.01, log = TRUE) +
             randomwalk2(r, kappaR) +
             seasonalComp(s, kappaS) +
-            logIGMRF1(u, kappaU, R) +
+            logIGMRF1(u, kappaU, R, rankdef) +
             sum(dgamma(ARcoeff, shape = rep(2, length(ARcoeff)), rate = rep(2, length(ARcoeff)), log = TRUE))
           - mvtnorm::dmvt(theta, delta = mu, sigma = varcov, df = 3, log = TRUE)
         }

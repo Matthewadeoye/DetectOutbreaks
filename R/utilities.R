@@ -116,11 +116,11 @@ seasonalComp2<- function(x, y, z) {
 }
 
 #Intrinsic GMRF density for spatial components (u_i)
-logIGMRF1<- function(x, y, z) {
+logIGMRF1<- function(x, y, z, rankdef) {
   n = nrow(z)
   sumC = sum(x[1:(n-1)])
   x = c(x[1:(n-1)], -sumC)
-  return ((n - 1)/2 * (log(y) - log(2 * pi)) - y/2 * t(x) %*% z %*% x)
+  return ((n - rankdef)/2 * (log(y) - log(2 * pi)) - y/2 * t(x) %*% z %*% x)
 }
 
 
@@ -150,24 +150,27 @@ crudeEst<- function(y, e_it){
   x<- 1:ncol(y)
   lambdadot<- ifelse(lambdadot== -Inf, mean(nlambdadot), lambdadot)
   success <- tryCatch({
-    loess_fit <- loess(lambdadot ~ x, span = 0.3)
+    loess_fit <- loess(lambdadot ~ x, span = 0.5)
     TRUE
   }, error = function(e) {
     FALSE
   })
 
   if(success){
-    loess_fit <- loess(lambdadot ~ x, span = 0.3)
+    loess_fit <- loess(lambdadot ~ x, span = 0.5)
     smoothed <- predict(loess_fit)
     crudeS<- lambdadot - smoothed
     crudeR<- smoothed
-    #crudeU<- log(rowSums(y/e_it)/sum(exp(crudeR+crudeS)))-mean(log(rowSums(y/e_it)/sum(exp(crudeR+crudeS))))
-    crudeU<- rep(0, nrow(y))
+    crudeU<- log(rowSums(y/e_it, na.rm = T)/sum(exp(crudeR+crudeS)))
+    crudeU[crudeU==-Inf]<- mean(crudeU[is.finite(crudeU)])
+    crudeU<- crudeU-mean(crudeU[is.finite(crudeU)])
+    #crudeU<- log(rowSums(y/e_it, na.rm = T)/sum(exp(crudeR+crudeS)))-mean(log(rowSums(y/e_it, na.rm = T)/sum(exp(crudeR+crudeS))))
+    #crudeU<- rep(0, nrow(y))
   }else{
     crudeR<- rep(mean(lambdadot), ncol(y))
     crudeS<- lambdadot-mean(lambdadot)
     crudeU<- rep(0, nrow(y))
-    }
+  }
   return(list(crudeR, crudeS, crudeU))
 }
 

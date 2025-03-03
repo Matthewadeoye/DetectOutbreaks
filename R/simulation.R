@@ -100,7 +100,7 @@ MChain<- function(time, G12, G21){
 }
 
 
-#' A function to simulate spatio-temporal datasets from the spatio-temporal models presented in (Adeoye, et.al., 2024).
+#' A function to simulate spatio-temporal datasets from the spatio-temporal models presented in (Adeoye, et.al., 2025).
 #'
 #' @param Model The model specification (ranges from 0 to 7).
 #' @param time Represent the time points.
@@ -125,14 +125,13 @@ MChain<- function(time, G12, G21){
 simulate<- function(Model, time, adj.matrix,
                      e_it=matrix(c(rep(c(rpois(time, 500000), rpois(time, 1000000)), 4), rpois(time, 500000)),
                                  byrow = T, ncol = time),
-                     B = c(1.68, 0.20), T.prob = matrix(c(0.9, 0.1, 0.2, 0.8), nrow = 2, byrow = T),
+                     B = c(0.75, 0.20), T.prob = matrix(c(0.9, 0.1, 0.2, 0.8), nrow = 2, byrow = T),
                      r = sim.RW2(time, sd=0.009), s = sim.Seasonals2(Amplitude = 1.4),
                      u = sim.Spatials(adj.matrix)){
   #sim.AR2(time, ar1=0.95, ar2=0.065, sd=0.57)
   #Models 1,2,7 B = 1.65
-  #Models 2 B = 1.68 for  model-evidence study
   #Models 4 B = 0.55
-  #Models 5 B = 0.45
+  #Models 5 B = 0.49
   #Model 3 B = c(1.25, 0.75)
   #Model 6 B=  c(0.35, 0.20)
   ndept<- nrow(adj.matrix)
@@ -152,8 +151,9 @@ simulate<- function(Model, time, adj.matrix,
 
   else if(Model == 1){
     for(i in 1:ndept){
+      lograte<- r[1] + s[1] + u[i]
+      y_it[i, 1]<- rpois(1, lambda = e_it[i, 1] * exp(lograte))
       EpidemicIndicator[i, ]<- MChain(time, T.prob[1, 2], T.prob[2, 1])
-      y_it[i, 1]<- rpois(1, lambda = 1)
     }
 
     for(t in 2:time){
@@ -169,8 +169,9 @@ simulate<- function(Model, time, adj.matrix,
 
   else if(Model == 2){
     for(i in 1:ndept){
+      lograte<- r[1] + s[1] + u[i]
+      y_it[i, 1]<- rpois(1, lambda = e_it[i, 1] * exp(lograte))
       EpidemicIndicator[i, ]<- MChain(time, T.prob[1, 2], T.prob[2, 1])
-      y_it[i, 1]<- rpois(1, lambda = 1)
     }
 
     for(t in 2:time){
@@ -187,8 +188,9 @@ simulate<- function(Model, time, adj.matrix,
 
   else if(Model == 3){
     for(i in 1:ndept){
+      lograte<- r[1] + s[1] + u[i]
+      y_it[i, 1]<- rpois(1, lambda = e_it[i, 1] * exp(lograte))
       EpidemicIndicator[i, ]<- MChain(time, T.prob[1, 2], T.prob[2, 1])
-      y_it[i, 1]<- rpois(1, lambda = 1)
     }
 
     for(t in 2:time){
@@ -206,8 +208,9 @@ simulate<- function(Model, time, adj.matrix,
 
   else if(Model == 4){
     for(i in 1:ndept){
+      lograte<- r[1] + s[1] + u[i]
+      y_it[i, 1]<- rpois(1, lambda = e_it[i, 1] * exp(lograte))
       EpidemicIndicator[i, ]<- MChain(time, T.prob[1, 2], T.prob[2, 1])
-      y_it[i, 1]<- rpois(1, lambda = 1)
     }
 
     for(t in 2:time){
@@ -223,8 +226,9 @@ simulate<- function(Model, time, adj.matrix,
 
   else if(Model == 5){
     for(i in 1:ndept){
+      lograte<- r[1] + s[1] + u[i]
+      y_it[i, 1]<- rpois(1, lambda = e_it[i, 1] * exp(lograte))
       EpidemicIndicator[i, ]<- MChain(time, T.prob[1, 2], T.prob[2, 1])
-      y_it[i, 1]<- rpois(1, lambda = 1)
     }
 
     for(t in 2:time){
@@ -241,8 +245,9 @@ simulate<- function(Model, time, adj.matrix,
 
   else if(Model == 6){
     for(i in 1:ndept){
+      lograte<- r[1] + s[1] + u[i]
+      y_it[i, 1]<- rpois(1, lambda = e_it[i, 1] * exp(lograte))
       EpidemicIndicator[i, ]<- MChain(time, T.prob[1, 2], T.prob[2, 1])
-      y_it[i, 1]<- rpois(1, lambda = 1)
     }
 
     for(t in 2:time){
@@ -260,8 +265,9 @@ simulate<- function(Model, time, adj.matrix,
 
   else if(Model == 7){
     for(i in 1:ndept){
+      lograte<- r[1] + s[1] + u[i]
+      y_it[i, 1]<- rpois(1, lambda = e_it[i, 1] * exp(lograte))
       EpidemicIndicator[i, ]<- MChain(time, T.prob[1, 2], T.prob[2, 1])
-      y_it[i, 1]<- rpois(1, lambda = 1)
     }
 
     for(t in 2:time){
@@ -324,8 +330,9 @@ simulate.old<- function(Model, time, adj.matrix,
 
   else if(Model == 1){
     for(i in 1:ndept){
+      lograte<- r[1] + s[1] + u[i]
+      y_it[i, 1]<- rpois(1, lambda = e_it[i, 1] * exp(lograte))
       EpidemicIndicator[i, ]<- MChain(time, T.prob[1, 2], T.prob[2, 1])
-      y_it[i, 1]<- rpois(1, lambda = 1)
     }
 
     for(t in 2:time){
@@ -340,8 +347,9 @@ simulate.old<- function(Model, time, adj.matrix,
 
   else if(Model == 2){
     for(i in 1:ndept){
+      lograte<- r[1] + s[1] + u[i]
+      y_it[i, 1]<- rpois(1, lambda = e_it[i, 1] * exp(lograte))
       EpidemicIndicator[i, ]<- MChain(time, T.prob[1, 2], T.prob[2, 1])
-      y_it[i, 1]<- rpois(1, lambda = 1)
     }
 
     for(t in 2:time){
@@ -357,8 +365,9 @@ simulate.old<- function(Model, time, adj.matrix,
 
   else if(Model == 3){
     for(i in 1:ndept){
+      lograte<- r[1] + s[1] + u[i]
+      y_it[i, 1]<- rpois(1, lambda = e_it[i, 1] * exp(lograte))
       EpidemicIndicator[i, ]<- MChain(time, T.prob[1, 2], T.prob[2, 1])
-      y_it[i, 1]<- rpois(1, lambda = 1)
     }
 
     for(t in 2:time){
@@ -376,8 +385,9 @@ simulate.old<- function(Model, time, adj.matrix,
 
   else if(Model == 4){
     for(i in 1:ndept){
+      lograte<- r[1] + s[1] + u[i]
+      y_it[i, 1]<- rpois(1, lambda = e_it[i, 1] * exp(lograte))
       EpidemicIndicator[i, ]<- MChain(time, T.prob[1, 2], T.prob[2, 1])
-      y_it[i, 1]<- rpois(1, lambda = 1)
     }
 
     for(t in 2:time){
@@ -392,8 +402,9 @@ simulate.old<- function(Model, time, adj.matrix,
 
   else if(Model == 5){
     for(i in 1:ndept){
+      lograte<- r[1] + s[1] + u[i]
+      y_it[i, 1]<- rpois(1, lambda = e_it[i, 1] * exp(lograte))
       EpidemicIndicator[i, ]<- MChain(time, T.prob[1, 2], T.prob[2, 1])
-      y_it[i, 1]<- rpois(1, lambda = 1)
     }
 
     for(t in 2:time){
@@ -409,8 +420,9 @@ simulate.old<- function(Model, time, adj.matrix,
 
   else if(Model == 6){
     for(i in 1:ndept){
+      lograte<- r[1] + s[1] + u[i]
+      y_it[i, 1]<- rpois(1, lambda = e_it[i, 1] * exp(lograte))
       EpidemicIndicator[i, ]<- MChain(time, T.prob[1, 2], T.prob[2, 1])
-      y_it[i, 1]<- rpois(1, lambda = 1)
     }
 
     for(t in 2:time){
@@ -428,8 +440,9 @@ simulate.old<- function(Model, time, adj.matrix,
 
   else if(Model == 7){
     for(i in 1:ndept){
+      lograte<- r[1] + s[1] + u[i]
+      y_it[i, 1]<- rpois(1, lambda = e_it[i, 1] * exp(lograte))
       EpidemicIndicator[i, ]<- MChain(time, T.prob[1, 2], T.prob[2, 1])
-      y_it[i, 1]<- rpois(1, lambda = 1)
     }
 
     for(t in 2:time){

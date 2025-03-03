@@ -2,7 +2,7 @@
 % Please edit documentation in R/simulation.R
 \name{simulate}
 \alias{simulate}
-\title{A function to simulate spatio-temporal datasets from the spatio-temporal models presented in (Adeoye, et.al., 2024).}
+\title{A function to simulate spatio-temporal datasets from the spatio-temporal models presented in (Adeoye, et.al., 2025).}
 \usage{
 simulate(
   Model,
@@ -10,7 +10,7 @@ simulate(
   adj.matrix,
   e_it = matrix(c(rep(c(rpois(time, 5e+05), rpois(time, 1e+06)), 4), rpois(time, 5e+05)),
     byrow = T, ncol = time),
-  B = c(1.68, 0.2),
+  B = c(0.75, 0.2),
   T.prob = matrix(c(0.9, 0.1, 0.2, 0.8), nrow = 2, byrow = T),
   r = sim.RW2(time, sd = 0.009),
   s = sim.Seasonals2(Amplitude = 1.4),
@@ -40,7 +40,7 @@ simulate(
 Spatio-temporal dataset
 }
 \description{
-A function to simulate spatio-temporal datasets from the spatio-temporal models presented in (Adeoye, et.al., 2024).
+A function to simulate spatio-temporal datasets from the spatio-temporal models presented in (Adeoye, et.al., 2025).
 }
 \examples{
 set.seed(4);

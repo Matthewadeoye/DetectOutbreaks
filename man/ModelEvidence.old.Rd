@@ -2,7 +2,7 @@
 % Please edit documentation in R/MarginalLoglikelihood.R
 \name{ModelEvidence.old}
 \alias{ModelEvidence.old}
-\title{A function to compute the marginal log-likelihood for model comparison purposes}
+\title{A function to compute the marginal log-likelihood for model comparison purposes in the spatio-temporal models presented in (Knorr-Held, et.al., 2003).}
 \usage{
 ModelEvidence.old(y, e_it, adjmat, Model, inf.object, num_samples = 10000)
 }
@@ -23,7 +23,7 @@ ModelEvidence.old(y, e_it, adjmat, Model, inf.object, num_samples = 10000)
 The marginal log-likelihood
 }
 \description{
-A function to compute the marginal log-likelihood for model comparison purposes
+A function to compute the marginal log-likelihood for model comparison purposes in the spatio-temporal models presented in (Knorr-Held, et.al., 2003).
 }
 \examples{
 set.seed(4);

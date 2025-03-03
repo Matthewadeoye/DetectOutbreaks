@@ -248,9 +248,9 @@ if(Model == 1 || Model == 2 || Model == 3 || Model == 4 || Model == 5 || Model =
   return dummy;
 }
   // Intrinsic GMRF density
-  real IGMRF1_lpdf(vector uconstrained, real kappa_u, matrix R) {
+  real IGMRF1_lpdf(vector uconstrained, real kappa_u, matrix R, int rankdef) {
     int n = rows(R);
-    return (((n - 1) / 2.0) * (log(kappa_u) - log(2.0 * pi())) - (kappa_u / 2.0) * quad_form(R, uconstrained));
+    return (((n - rankdef) / 2.0) * (log(kappa_u) - log(2.0 * pi())) - (kappa_u / 2.0) * quad_form(R, uconstrained));
   }
 
   // Random walk density
@@ -430,6 +430,7 @@ data {
   int<lower=1> ndept;                 // Number of departments
   int<lower=1> time;                  // Time
   int<lower=1> nstate;                // Number of states
+  int<lower=1> rankdef;               // Rank deficiency of structure matrix (R)
   array[ndept, time] int y;           // data matrix
   matrix[ndept, time] e_it;           // initial Susceptibles
   matrix[ndept, ndept] R;             // Structure / Precision matrix (IGMRF1/IGMRF2)
@@ -474,7 +475,7 @@ model {
     B[2] ~ gamma(2, 2);
   }
 
-  uconstrained ~ IGMRF1(kappa_u, R);
+  uconstrained ~ IGMRF1(kappa_u, R, rankdef);
   r ~ randomwalk2(kappa_r);
   s ~ seasonalComp(kappa_s);
 

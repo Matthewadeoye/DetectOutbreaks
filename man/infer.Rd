@@ -2,7 +2,7 @@
 % Please edit documentation in R/inference.R
 \name{infer}
 \alias{infer}
-\title{A function to carryout Bayesian inference for the spatio-temporal models presented in (Adeoye, et.al., 2024).}
+\title{A function to carryout Bayesian inference for the spatio-temporal models presented in (Adeoye, et.al., 2025).}
 \usage{
 infer(
   y,
@@ -57,7 +57,7 @@ infer(
 Samples from the target posterior distribution (and outbreak probabilities, model evidence).
 }
 \description{
-A function to carryout Bayesian inference for the spatio-temporal models presented in (Adeoye, et.al., 2024).
+A function to carryout Bayesian inference for the spatio-temporal models presented in (Adeoye, et.al., 2025).
 }
 \examples{
 set.seed(4);

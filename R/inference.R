@@ -1,4 +1,4 @@
-#' A function to carryout Bayesian inference for the spatio-temporal models presented in (Adeoye, et.al., 2024).
+#' A function to carryout Bayesian inference for the spatio-temporal models presented in (Adeoye, et.al., 2025).
 #'
 #' @param y A space-time data matrix (locations on the row, and time on the columns).
 #' @param e_it A space-time data matrix showing the number of susceptible individuals (locations on the row, and time on the columns).
@@ -41,6 +41,7 @@ infer<- function(y, e_it, Model, adjmat, num_iteration = 30000, Stan = TRUE, GPU
 
   R<- -1 * adjmat
   diag(R)<- -rowSums(R, na.rm = T)
+  rankdef<- nrow(R)-qr(R)$rank
   nstate<- 2
   ndept<- nrow(y)
   time<- ncol(y)
@@ -76,13 +77,13 @@ infer<- function(y, e_it, Model, adjmat, num_iteration = 30000, Stan = TRUE, GPU
   }
 
   if(Stan){
-    initials <- list(G12 = 0.1, G21 = 0.3, u = rep(0, ndept-1), r = rep(0, time), sraw = rep(0, 11), kappa_u=20, kappa_r=20, kappa_s=20)
+    initials <- list(G12 = 0.1, G21 = 0.3, u = rep(0, ndept-1), r = rep(0, time), sraw = rep(0, 11), kappa_u=20, kappa_r=20, kappa_s=20, B=rep(0.1, npar))
     initials_list <- lapply(1:nchains, function(x) initials)
     if(GPU){
       mod <- cmdstanr::cmdstan_model(system.file("stan", "newModel.stan", package = "DetectOutbreaks", mustWork = T), compile = F, cpp_options = list(stan_opencl = TRUE))
       if(verbose){
         mod$compile()
-        fit<- mod$sample(data = list(ndept=ndept, time=time, nstate=nstate, y=y, e_it=e_it, R=R,
+        fit<- mod$sample(data = list(ndept=ndept, time=time, nstate=nstate, rankdef=rankdef, y=y, e_it=e_it, R=R,
                                      SMat = strs, Model = Model, npar = npar, z_it = z_it, z_it2 = z_it2),
                          init = initials_list, chains = nchains, iter_warmup = round(iter*0.25),
                          iter_sampling = round(iter*0.75), parallel_chains = nchains,
@@ -90,7 +91,7 @@ infer<- function(y, e_it, Model, adjmat, num_iteration = 30000, Stan = TRUE, GPU
       }else{
         invisible(capture.output(suppressMessages({
           mod$compile()
-          fit<- mod$sample(data = list(ndept=ndept, time=time, nstate=nstate, y=y, e_it=e_it, R=R,
+          fit<- mod$sample(data = list(ndept=ndept, time=time, nstate=nstate, rankdef=rankdef, y=y, e_it=e_it, R=R,
                                        SMat = strs, Model = Model, npar = npar, z_it = z_it, z_it2 = z_it2),
                            init = initials_list, chains = nchains, iter_warmup = round(iter*0.25),
                            iter_sampling = round(iter*0.75), parallel_chains = nchains,
@@ -139,12 +140,15 @@ infer<- function(y, e_it, Model, adjmat, num_iteration = 30000, Stan = TRUE, GPU
     crudeR<- crudeResults[[1]]
     crudeS<- crudeResults[[2]]
     crudeU<- crudeResults[[3]]
+    crudeU<- ifelse(is.nan(crudeU), mean(crudeU[is.finite(crudeU)]), crudeU)
+    crudeblock<- floor(time/12)
+    crudeblock<- ((crudeblock*12)-11):(crudeblock*12)
 
     MC_chain<- matrix(NA, nrow=num_iteration, ncol=5+time+12+ndept+2+1)
     initG12<- runif(1)
     initG21<- runif(1)
     initstateD<- state_dist_cpp(initG12, initG21)[2]
-    MC_chain[1,]<- c(initG12, initG21, runif(1, 0, 1000), runif(1, 0, 1000), runif(1, 0, 30), crudeR, crudeS[1:12], crudeU, rep(0, 2), initstateD)
+    MC_chain[1,]<- c(initG12, initG21, runif(1, 0, 1000), runif(1, 0, 1000), runif(1, 0, 30), crudeR, crudeS[crudeblock], crudeU, rep(0, 2), initstateD)
 
     zigmaR<- diag(rep(0.1, time), nrow = time, ncol = time)
     zigmaS<- diag(rep(0.1, 11), nrow = 11, ncol = 11)
@@ -198,8 +202,8 @@ infer<- function(y, e_it, Model, adjmat, num_iteration = 30000, Stan = TRUE, GPU
       proposedspatcomps<- mvnfast::rmvn(1, mu=MC_chain[i-1, 5+time+12+(1:(ndept-1))], sigma = zigmaU)
       proposedspatcomps<- c(proposedspatcomps, -sum(proposedspatcomps))
 
-      priorcurrentUcomps<- logIGMRF1(MC_chain[i-1, 5+time+12+(1:ndept)], MC_chain[i, 5], R)
-      priorproposedUcomps<- logIGMRF1(proposedspatcomps, MC_chain[i, 5], R)
+      priorcurrentUcomps<- logIGMRF1(MC_chain[i-1, 5+time+12+(1:ndept)], MC_chain[i, 5], R, rankdef)
+      priorproposedUcomps<- logIGMRF1(proposedspatcomps, MC_chain[i, 5], R, rankdef)
 
       proposalproposedcompsU<- mvnfast::dmvn(proposedspatcomps[-ndept], mu = MC_chain[i-1, 5+time+12+(1:(ndept-1))], sigma = zigmaU, log = TRUE)
       proposalcurrentcompsU<- mvnfast::dmvn(MC_chain[i-1, 5+time+12+(1:(ndept-1))], mu = proposedspatcomps[-ndept], sigma = zigmaU, log = TRUE)
@@ -484,6 +488,7 @@ infer.old<- function(y, e_it, Model, adjmat, num_iteration = 30000, Stan = TRUE,
 
   R<- -1 * adjmat
   diag(R)<- -rowSums(R, na.rm = T)
+  rankdef<- nrow(R)-qr(R)$rank
   nstate<- 2
   ndept<- nrow(y)
   time<- ncol(y)
@@ -508,13 +513,13 @@ infer.old<- function(y, e_it, Model, adjmat, num_iteration = 30000, Stan = TRUE,
   }
 
   if(Stan){
-    initials <- list(G12 = 0.1, G21 = 0.3, u = rep(0, ndept-1), r = rep(0, time), s = rep(0, time), kappa_u=20, kappa_r=20, kappa_s=20)
+    initials <- list(G12 = 0.1, G21 = 0.3, u = rep(0, ndept-1), r = rep(0, time), s = rep(0, time), kappa_u=20, kappa_r=20, kappa_s=20, B=rep(0.1, npar))
     initials_list <- lapply(1:nchains, function(x) initials)
     if(GPU){
       mod <- cmdstanr::cmdstan_model(system.file("stan", "Model.stan", package = "DetectOutbreaks", mustWork = T), compile = F, cpp_options = list(stan_opencl = TRUE))
       if(verbose){
         mod$compile()
-        fit<- mod$sample(data = list(ndept=ndept, time=time, nstate=nstate, y=y, e_it=e_it, R=R,
+        fit<- mod$sample(data = list(ndept=ndept, time=time, nstate=nstate, rankdef=rankdef, y=y, e_it=e_it, R=R,
                                      Model = Model, npar = npar, z_it = z_it, z_it2 = z_it2),
                          init = initials_list, chains = nchains, iter_warmup = round(iter*0.25),
                          iter_sampling = round(iter*0.75), parallel_chains = nchains,
@@ -522,7 +527,7 @@ infer.old<- function(y, e_it, Model, adjmat, num_iteration = 30000, Stan = TRUE,
       }else{
         invisible(capture.output(suppressMessages({
           mod$compile()
-          fit<- mod$sample(data = list(ndept=ndept, time=time, nstate=nstate, y=y, e_it=e_it, R=R,
+          fit<- mod$sample(data = list(ndept=ndept, time=time, nstate=nstate, rankdef=rankdef, y=y, e_it=e_it, R=R,
                                        Model = Model, npar = npar, z_it = z_it, z_it2 = z_it2),
                            init = initials_list, chains = nchains, iter_warmup = round(iter*0.25),
                            iter_sampling = round(iter*0.75), parallel_chains = nchains,
@@ -533,7 +538,7 @@ infer.old<- function(y, e_it, Model, adjmat, num_iteration = 30000, Stan = TRUE,
       mod <- cmdstanr::cmdstan_model(system.file("stan", "Model.stan", package = "DetectOutbreaks", mustWork = T), compile = F)
       if(verbose){
         mod$compile()
-        fit<- mod$sample(data = list(ndept=ndept, time=time, nstate=nstate, y=y, e_it=e_it, R=R,
+        fit<- mod$sample(data = list(ndept=ndept, time=time, nstate=nstate, rankdef=rankdef, y=y, e_it=e_it, R=R,
                                      Model = Model, npar = npar, z_it = z_it, z_it2 = z_it2),
                          init = initials_list, chains = nchains, iter_warmup = round(iter*0.25),
                          iter_sampling = round(iter*0.75), parallel_chains = nchains,
@@ -541,7 +546,7 @@ infer.old<- function(y, e_it, Model, adjmat, num_iteration = 30000, Stan = TRUE,
       }else{
         invisible(capture.output(suppressMessages({
           mod$compile()
-          fit<- mod$sample(data = list(ndept=ndept, time=time, nstate=nstate, y=y, e_it=e_it, R=R,
+          fit<- mod$sample(data = list(ndept=ndept, time=time, nstate=nstate, rankdef=rankdef, y=y, e_it=e_it, R=R,
                                        Model = Model, npar = npar, z_it = z_it, z_it2 = z_it2),
                            init = initials_list, chains = nchains, iter_warmup = round(iter*0.25),
                            iter_sampling = round(iter*0.75), parallel_chains = nchains,
@@ -661,8 +666,8 @@ infer.old<- function(y, e_it, Model, adjmat, num_iteration = 30000, Stan = TRUE,
       proposedspatcomps<- mvnfast::rmvn(1, mu=MC_chain[i-1, 5+time+time+(1:(ndept-1))], sigma = zigmaU)
       proposedspatcomps<- c(proposedspatcomps, -sum(proposedspatcomps))
 
-      priorcurrentUcomps<- logIGMRF1(MC_chain[i-1, 5+time+time+(1:ndept)], MC_chain[i, 5], R)
-      priorproposedUcomps<- logIGMRF1(proposedspatcomps, MC_chain[i, 5], R)
+      priorcurrentUcomps<- logIGMRF1(MC_chain[i-1, 5+time+time+(1:ndept)], MC_chain[i, 5], R, rankdef)
+      priorproposedUcomps<- logIGMRF1(proposedspatcomps, MC_chain[i, 5], R, rankdef)
 
       proposalproposedcompsU<- mvnfast::dmvn(proposedspatcomps[-ndept], mu = MC_chain[i-1, 5+time+time+(1:(ndept-1))], sigma = zigmaU, log = TRUE)
       proposalcurrentcompsU<- mvnfast::dmvn(MC_chain[i-1, 5+time+time+(1:(ndept-1))], mu = proposedspatcomps[-ndept], sigma = zigmaU, log = TRUE)

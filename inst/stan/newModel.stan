@@ -253,9 +253,9 @@ functions{
     return dummy;
   }
   // Intrinsic GMRF density
-  real IGMRF1_lpdf(vector uconstrained, real kappa_u, matrix R) {
+  real IGMRF1_lpdf(vector uconstrained, real kappa_u, matrix R, int rankdef) {
     int n = rows(R);
-    return (((n - 1) / 2.0) * (log(kappa_u) - log(2.0 * pi())) - (kappa_u / 2.0) * quad_form(R, uconstrained));
+    return (((n - rankdef) / 2.0) * (log(kappa_u) - log(2.0 * pi())) - (kappa_u / 2.0) * quad_form(R, uconstrained));
   }
 
   // Random walk density
@@ -436,6 +436,7 @@ data {
   int<lower=1> ndept;                 // Number of departments
   int<lower=1> time;                  // Time
   int<lower=1> nstate;                // Number of states
+  int<lower=1> rankdef;               // Rank deficiency of structure matrix (R)
   array[ndept, time] int y;           // data matrix
   matrix[ndept, time] e_it;           // initial Susceptibles
   matrix[ndept, ndept] R;             // Structure matrix (IGMRF1)
@@ -484,7 +485,7 @@ model {
     B[2] ~ gamma(2, 2);
   }
 
-  uconstrained ~ IGMRF1(kappa_u, R);
+  uconstrained ~ IGMRF1(kappa_u, R, rankdef);
   r ~ randomwalk2(kappa_r);
   s ~ seasonalComp(kappa_s, SMat);
 
@@ -495,42 +496,4 @@ model {
 generated quantities{
   real log_lik = Stan_Loglikelihood(y, r, s, uconstrained, G(G12, G21), e_it, B, Model, z_it, z_it2);
   real state1_stationary_dist = TPM(G12, G21)[2];
-//  array[ndept, time] int predY_it;
-
-//if(Model == 0){
-//for(i in 1:ndept){
-//  for(t in 1:time){
-//    int month_index = (t - 1) % 12 + 1;
-//    real expected_it = e_it[i, t] * exp(r[t] + s[month_index] + uconstrained[i]);
-//    predY_it[i, t] = poisson_rng(expected_it);
-//  }
-// }
-//}
-//else if(Model == 1 || Model == 2 || Model == 4 || Model == 5 || Model == 7){
-//  matrix[ndept, time] x_it = StanDecoding(y, r, s, uconstrained, G(G12, G21), e_it, B, Model, z_it, z_it2);
-
-//for(i in 1:ndept){
-//  for(t in 1:time){
-//    int month_index = (t - 1) % 12 + 1;
-//    int indicator = binomial_rng(1, x_it[i, t]);
-//    real expected_it = e_it[i, t] * exp(r[t] + s[month_index] + uconstrained[i] + indicator * z_it[i, t] * B[1]);
-//    predY_it[i, t] = poisson_rng(expected_it);
-//  }
- //}
-//}
-//else if(Model == 3 || Model == 6){
-//  matrix[ndept, time] x_it = StanDecoding(y, r, s, uconstrained, G(G12, G21), e_it, B, Model, z_it, z_it2);
-
-//for(i in 1:ndept){
-//  for(t in 1:time){
-//    int month_index = (t - 1) % 12 + 1;
-//    int indicator = binomial_rng(1, x_it[i, t]);
-//    real expected_it = e_it[i, t] * exp(r[t] + s[month_index] + uconstrained[i] + indicator * z_it[i, t] * B[1] + indicator *  z_it2[i, t] * B[2]);
-//    predY_it[i, t] = poisson_rng(expected_it);
-//  }
- //}
-//}
-
-//Overall predicted cases
-//  array[time] int colsumY = colSums(predY_it);
 }
