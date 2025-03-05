@@ -102,7 +102,7 @@ infer<- function(y, e_it, Model, adjmat, num_iteration = 30000, Stan = TRUE, GPU
       mod <- cmdstanr::cmdstan_model(system.file("stan", "newModel.stan", package = "DetectOutbreaks", mustWork = T), compile = F)
       if(verbose){
         mod$compile()
-        fit<- mod$sample(data = list(ndept=ndept, time=time, nstate=nstate, y=y, e_it=e_it, R=R,
+        fit<- mod$sample(data = list(ndept=ndept, time=time, nstate=nstate, rankdef=rankdef, y=y, e_it=e_it, R=R,
                                      SMat = strs, Model = Model, npar = npar, z_it = z_it, z_it2 = z_it2),
                          init = initials_list, chains = nchains, iter_warmup = round(iter*0.25),
                          iter_sampling = round(iter*0.75), parallel_chains = nchains,
@@ -110,7 +110,7 @@ infer<- function(y, e_it, Model, adjmat, num_iteration = 30000, Stan = TRUE, GPU
       }else{
         invisible(capture.output(suppressMessages({
           mod$compile()
-          fit<- mod$sample(data = list(ndept=ndept, time=time, nstate=nstate, y=y, e_it=e_it, R=R,
+          fit<- mod$sample(data = list(ndept=ndept, time=time, nstate=nstate, rankdef=rankdef, y=y, e_it=e_it, R=R,
                                        SMat = strs, Model = Model, npar = npar, z_it = z_it, z_it2 = z_it2),
                            init = initials_list, chains = nchains, iter_warmup = round(iter*0.25),
                            iter_sampling = round(iter*0.75), parallel_chains = nchains,

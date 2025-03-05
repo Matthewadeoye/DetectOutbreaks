@@ -18,46 +18,30 @@
 #' TRUTHS2<- simulate.old(Model = 0, time = 48, adj.matrix = sim_adjmat)
 #' sim.plot(TRUTHS2)
 #'
-sim.plot<- function(sim.object){
-    #spatdata<- sim.object[[1]]
-    #r<- sim.object[[3]]
-    #s<- sim.object[[4]]
-    spatdata<-sim.object
-    country_name<- c("Austria","Belgium","Cyprus","Czechia",
-                                "Denmark","Estonia","Finland","France","Germany",
-                                "Greece","Hungary","Iceland","Ireland","Italy","Latvia",
-                                "Lithuania","Luxembourg","Malta","Netherlands","Norway","Poland",
-                                "Portugal","Romania","Slovakia","Slovenia","Spain","Sweden","United Kingdom")
+sim.plot <- function(sim.object) {
+  if (is.list(sim.object)) {
+    spatdata <- sim.object[[1]]
+  } else {
+    spatdata <- sim.object
+  }
+  ts_spatdata <- as.data.frame(t(spatdata))
+  ts_spatdata$Time <- 1:ncol(spatdata)
+  colnames(ts_spatdata) <- c(paste("u", 1:(ncol(ts_spatdata) - 1), sep = ""), "Time")
+  long_data <- reshape2::melt(ts_spatdata, id.vars = "Time")
 
+  library(ggplot2)
+  a <- ggplot2::ggplot(data = long_data, mapping = aes(x = Time, y = value, color = variable)) +
+    geom_line() +
+    labs(x = "Time [month/year]", y = "Case counts", color = "Location") +
+    guides(color = guide_legend("Location"), linetype = guide_legend("Location")) +
+    theme(axis.title.y = element_text(size = 18),
+          axis.title.x = element_text(size = 18),
+          axis.text.x = element_text(size = 16),
+          axis.text.y = element_text(size = 16),
+          legend.title = element_text(size = 18),
+          legend.text = element_text(size = 16))
 
-    ts_spatdata <- as.data.frame(t(spatdata))
-    colnames(ts_spatdata) <- country_name
-    #ts_spatdata$Time <- 1:ncol(spatdata)
-    ts_spatdata$Time <- seq.Date(from = as.Date("2013-01-01"), to = as.Date("2019-12-01"), by = "month")
-    #naming<- c(paste("u", 1:(ncol(ts_spatdata)-1), sep=""), "Time")
-    #naming<- c(country_name, "Time")
-
-    long_data <- reshape2::melt(ts_spatdata, id.vars = "Time")
-    library(ggplot2)
-    a<- (ggplot2::ggplot(data = long_data, mapping = aes(x = Time, y = value, color = variable)) +
-           geom_line() +
-           labs(x = "Time [month/year]", y = "Case counts", color = "Country") +
-           scale_x_date(date_labels = "%b %Y", date_breaks = "1 year") +
-           #guides(color = guide_legend("Location"), linetype = guide_legend("Location")) +
-           theme(axis.title.y = element_text(size=18),
-                 axis.title.x = element_text(size=18),
-                 axis.text.x = element_text(size=16),
-                 axis.text.y = element_text(size=16),
-                 legend.title = element_text(size = 18),
-                 legend.text = element_text(size = 16)))
-    #par(mfrow=c(1,3))
-    #plot(1:ncol(spatdata), r, type="l", ylab = "Trend component", xlab = "Time")
-    #grid()
-    #plot(1:length(s), s, type="l", ylab = "Seasonal component", xlab = "Season")
-    #grid()
-    #plot(1:ncol(spatdata), colSums(spatdata, na.rm = T), type="l", ylab = "Overall cases", xlab = "Time")
-    #grid()
-    return(a)
+  return(a)
 }
 
 
