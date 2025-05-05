@@ -4,7 +4,7 @@
 \alias{sim.plot}
 \title{A function for plotting simulation figures.}
 \usage{
-sim.plot(sim.object)
+sim.plot(sim.object, names = NULL)
 }
 \arguments{
 \item{sim.object}{Resulting simulation object from either "simulate", or "simulate.old".}

@@ -6,10 +6,13 @@
 <!-- badges: start -->
 <!-- badges: end -->
 
-The goal of DetectOutbreaks is to introduce a novel approach to the
-analysis of a spatio-temporal model designed for disease outbreak
-surveillance. The package is built to help facilitate model simulations
-and efficient Bayesian inference methods.
+DetectOutbreaks is created to implement a novel and efficient approach
+to the analysis of spatio-temporal models presented in [(Adeoye et al.,
+2025)](https://arxiv.org/abs/2503.01456). The package is built with
+different functionalities including model simulations, Bayesian
+inference methods, model comparison methods, plotting of results, etc.
+To reproduce the results presented in our paper, please refer to
+[reproduce_results](https://github.com/Matthewadeoye/DetectOutbreaks/blob/master/inst/scripts/reproduce_results.R).
 
 # Dependencies
 
@@ -37,8 +40,8 @@ devtools::install_github("Matthewadeoye/DetectOutbreaks")
 
 ## Simulation, visualization, inference, and outbreak detection.
 
-This is a basic example which shows you how to simulate and visualize
-space-time data from the null model:
+An example showing how to simulate and plot space-time data from model-0
+described in [(Adeoye et al., 2025)](https://arxiv.org/abs/2503.01456):
 
 ``` r
 library(DetectOutbreaks)
@@ -55,12 +58,12 @@ set.seed(0); TRUTHS<- simulate(Model = 0, time = 60, adj.matrix = sim_adjmat)
 sim.plot(sim.object = TRUTHS)
 ```
 
-<img src="man/figures/README-simulation-1.png" width="100%" /><img src="man/figures/README-simulation-2.png" width="100%" />
+<img src="man/figures/README-simulation-1.png" width="100%" />
 
-<img src="man/figures/README-figures-1.png" width="100%" /><img src="man/figures/README-figures-2.png" width="100%" />
+<img src="man/figures/README-figures-1.png" width="100%" />
 
-We can perform Bayesian inference using either HMC in Stan or a bespoke
-MCMC algorithm in DetectOutbreaks:
+Inference using either Hamiltonian Monte Carlo or a bespoke MCMC
+algorithm via DetectOutbreaks:
 
 ``` r
 #HMCfit<- infer(y = TRUTHS[[1]], e_it = TRUTHS[[2]], Model = 0, adjmat = sim_adjmat, Stan = TRUE, ModEvid = TRUE, OutbreakProb = FALSE)
@@ -72,8 +75,8 @@ MCMC algorithm in DetectOutbreaks:
 #inf.plot(MCMCfit)
 ```
 
-We can also perform simulation, inference and detect outbreaks in the
-simulated datasets using more complex models in DetectOutbreaks:
+Simulation, inference and outbreak detection as described in [(Adeoye et
+al., 2025)](https://arxiv.org/abs/2503.01456):
 
 ``` r
 library(DetectOutbreaks)
@@ -96,9 +99,9 @@ set.seed(0); TRUTHS1<- simulate(Model = 1, time = 60, adj.matrix = sim_adjmat)
 #image(t(MarginalProbabilities))
 ```
 
-We can compute model evidence (also known as marginal log-likelihood)
-through importance sampling Monte Carlo simulations for any model fitted
-by DetectOutbreaks:
+Compute model evidence (or log marginal likelihood) through importance
+sampling Monte Carlo simulations for any model fitted by
+DetectOutbreaks:
 
 ``` r
 library(DetectOutbreaks)

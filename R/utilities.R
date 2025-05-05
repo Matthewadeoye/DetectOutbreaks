@@ -24,37 +24,37 @@ check_sim <- function(sim.object, adjmat, Model) {
     for(i in 1:ndept){
       for(t in 1:time){
         if(x[i, t] == 0){
-        S_naught[i, t]<- y[i, t] - e_it[i, t] * lambda_it[i, t]
+          S_naught[i, t]<- y[i, t] - e_it[i, t] * lambda_it[i, t]
         }else{
-        S_one[i, t]<- y[i, t] - e_it[i, t] * lambda_it[i, t]
+          S_one[i, t]<- y[i, t] - e_it[i, t] * lambda_it[i, t]
+        }
       }
     }
-  }
-  S_naught <- as.numeric(S_naught[!is.na(S_naught)])
-  S_one<- as.numeric(S_one[!is.na(S_one)])
+    S_naught <- as.numeric(S_naught[!is.na(S_naught)])
+    S_one<- as.numeric(S_one[!is.na(S_one)])
 
-  vioSim<- data.frame(value = c(S_naught, S_one), group = factor(c(rep("S0", length(S_naught)), rep("S1", length(S_one)))))
-  vioSim$group <- factor(vioSim$group, levels = unique(vioSim$group))
-  Means<- c(mean(S_naught), mean(S_one))
-  library(RColorBrewer)
-  print(ggplot(vioSim, aes(x = group, y = value, fill = group)) +
-          geom_violin(trim = FALSE, alpha = 0.7) +
-          geom_point(x = 1, y = Means[1], color = "red", size = 3, shape = 18) +
-          geom_point(x = 2, y = Means[2], color = "red", size = 3, shape = 18) +
-          labs(title = "", x = "", y = "Value", fill = "Mean value") +
-          theme_minimal() +
-          scale_fill_brewer(palette = "Set2") +
-          scale_x_discrete(labels = c("S0" = expression(S[O]),
-                                      "S1" = expression(S[1]))) +
-          scale_fill_manual(values = brewer.pal(5, "Set2"),
-                            labels = c(expression(S[O]),
-                                       expression(S[1])),
-                            name = "Mean value"))  # Legend title
+    vioSim<- data.frame(value = c(S_naught, S_one), group = factor(c(rep("S0", length(S_naught)), rep("S1", length(S_one)))))
+    vioSim$group <- factor(vioSim$group, levels = unique(vioSim$group))
+    Means<- c(mean(S_naught), mean(S_one))
+    library(RColorBrewer)
+    print(ggplot(vioSim, aes(x = group, y = value, fill = group)) +
+            geom_violin(trim = FALSE, alpha = 0.7) +
+            geom_point(x = 1, y = Means[1], color = "red", size = 3, shape = 18) +
+            geom_point(x = 2, y = Means[2], color = "red", size = 3, shape = 18) +
+            labs(title = "", x = "", y = "Value", fill = "Mean value") +
+            theme_minimal() +
+            scale_fill_brewer(palette = "Set2") +
+            scale_x_discrete(labels = c("S0" = expression(S[O]),
+                                        "S1" = expression(S[1]))) +
+            scale_fill_manual(values = brewer.pal(5, "Set2"),
+                              labels = c(expression(S[O]),
+                                         expression(S[1])),
+                              name = "Mean value"))  # Legend title
   }else{
     for(i in 1:ndept){
       for(t in 1:time){
-          S_naught[i, t]<- y[i, t] - e_it[i, t] * lambda_it[i, t]
-        }
+        S_naught[i, t]<- y[i, t] - e_it[i, t] * lambda_it[i, t]
+      }
     }
     S_naught <- as.numeric(S_naught[!is.na(S_naught)])
     vioSim<- data.frame(value = S_naught, group = factor(rep("S0", length(S_naught))))
@@ -386,3 +386,240 @@ LinearInterp<- function(popdata){
 #dmat<- dmat[requiredcountriesnames, requiredcountriesnames]
 #AdjacencyMatrix<- ifelse(dmat>820,0,1)
 #diag(AdjacencyMatrix)<- 0
+
+ModComp<- function(allmods, alldata, adjmat){
+  y<- alldata[[1]]
+  e_it<- alldata[[2]]
+  modevid<- matrix(NA, nrow = 1, ncol=length(allmods))
+  postmodprob<- matrix(NA, nrow = 1, ncol=length(allmods))
+  for(i in 1:length(allmods)){
+    Model<- allmods[[i]]
+    modevid[,i]<- DetectOutbreaks::ModelEvidence(y=y, e_it = e_it, adjmat = adjmat, Model = i-1, inf.object = Model)
+  }
+  for(i in 1:length(allmods)){
+    postmodprob[,i]<- exp(modevid[,i]- matrixStats::logSumExp(c(modevid)))
+  }
+  colnames(modevid)<- paste("Model", 0:(length(allmods)-1))
+  colnames(postmodprob)<- paste("Model", 0:(length(allmods)-1))
+  print(modevid)
+  print(postmodprob)
+}
+
+secondorderRW<- function(rt, kappa_r, forecastlength){
+  rt_forecast<- numeric(forecastlength)
+  rt_forecast[1] <- 2 * rt[length(rt)-1] - rt[length(rt)-2] + rnorm(1, mean=0, sd=sqrt(1/kappa_r))
+  rt_forecast[2] <- 2 * rt_forecast[1] - rt[length(rt)-1] + rnorm(1, mean=0, sd=sqrt(1/kappa_r))
+  for(t in 3:forecastlength){
+    rt_forecast[t] <- 2 * rt_forecast[t-1] - rt_forecast[t-2] + rnorm(1, mean=0, sd=sqrt(1/kappa_r))
+  }
+  return(rt_forecast)
+}
+
+MChain2<- function(forecastlength, G12, G21, outP){
+  transition_matrix <- matrix(c(1-G12, G12, G21, 1-G21), nrow = 2, byrow = TRUE)
+  initial_state <- sample(0:1, size = 1, prob = outP)
+  states <- numeric(forecastlength)
+  states[1] <- initial_state
+  for(i in 2:forecastlength) {
+    current_state <- states[i - 1]
+    next_state <- sample(0:1, size = 1, prob = transition_matrix[current_state + 1, ])
+    states[i] <- next_state
+  }
+  return(states)
+}
+
+
+LinearExtrp<- function(popdata, forecastlength){
+  ndept<- nrow(popdata)
+  time<- ncol(popdata)
+  e_it<- matrix(NA, nrow = ndept, ncol = forecastlength)
+
+  for(i in 1:ndept){
+    e_it[i, 1]<- popdata[i, time] + ((popdata[i, time]-popdata[i, time-1])/1) * 1
+    e_it[i, 2]<- e_it[i, 1] + ((e_it[i, 1]-popdata[i, time])/1) * 1
+    for(t in 3:forecastlength){
+      e_it[i, t]<- e_it[i, t-1] + ((e_it[i, t-1]-e_it[i, t-2])/1) * 1
+    }
+  }
+  return(round(e_it))
+}
+
+
+#FORWARD FILTER for new (cyclic) model
+forwardfilter2<- function(y, e_it, r, s, u, Gamma, B, Model, adjmat) {
+
+  design_matrix_func <- get(paste0("DesignMatrixModel", Model))
+  z_it <- design_matrix_func(y, adjmat)[[1]]
+  z_it2 <- design_matrix_func(y, adjmat)[[2]]
+
+  ndept <- nrow(y)
+  nstate <- ncol(Gamma)
+  time <- ncol(y)
+  gamma_11 <- log(Gamma[1, 1])
+  gamma_12 <- log(Gamma[1, 2])
+  gamma_21 <- log(Gamma[2, 1])
+  gamma_22 <- log(Gamma[2, 2])
+  init_density<- state_dist_cpp(Gamma[1, 2], Gamma[2, 1])
+  init_density<- log(init_density)
+
+  y<- ifelse(is.na(y), -1, y)
+
+  if(Model %in% c(0,1,2,4,5,7)){
+    AllForwardprobs<- vector("list", ndept)
+
+    for (i in 1:ndept) {
+      Forwardprob<- matrix(NA, nrow = time, ncol = nstate)
+      if(y[i, 1] == -1){
+        alpha.1 <- init_density[1]
+        alpha.2 <- init_density[2]
+      }else{
+        alpha.1 <- init_density[1] + dpois(y[i, 1], lambda = e_it[i, 1] * exp(r[1] + s[1] + u[i]), log = TRUE)
+        alpha.2 <- init_density[2] + dpois(y[i, 1], lambda = e_it[i, 1] * exp(r[1] + s[1] + u[i] + B[1] * z_it[i, 1]), log = TRUE)
+      }
+      Forwardprob[1, ] <- c(alpha.1, alpha.2)
+
+      for (t in 2:time) {
+        if(y[i, t] == -1){
+          Alphas<- c(alpha.1, alpha.2)
+          alpha.1 <- logSumExp_cpp(c(Alphas[1] + gamma_11))
+          alpha.2 <- logSumExp_cpp(c(Alphas[1] + gamma_12))
+          Forwardprob[t, ] <- c(alpha.1, alpha.2)
+        }else{
+          month_index<- (t - 1) %% 12 + 1
+          Alphas<- c(alpha.1, alpha.2)
+          alpha.1 <- logSumExp_cpp(c(Alphas[1] + gamma_11 + dpois(y[i, t], lambda = e_it[i, t] * exp(r[t] + s[month_index] + u[i]), log = TRUE), Alphas[2] + gamma_21 + dpois(y[i, t], lambda = e_it[i, t] * exp(r[t] + s[month_index] + u[i]), log = TRUE)))
+          alpha.2 <- logSumExp_cpp(c(Alphas[1] + gamma_12 + dpois(y[i, t], lambda = e_it[i, t] * exp(r[t] + s[month_index] + u[i] + B[1] * z_it[i,t]), log = TRUE), Alphas[2] + gamma_22 + dpois(y[i, t], lambda = e_it[i, t] * exp(r[t] + s[month_index] + u[i] + B[1] * z_it[i,t]), log = TRUE)))
+          Forwardprob[t, ] <- c(alpha.1, alpha.2)
+        }
+      }
+      AllForwardprobs[[i]]<- Forwardprob
+    }
+
+    return(AllForwardprobs)
+  }
+
+  else if(Model %in% c(3,6)){
+    AllForwardprobs<- vector("list", ndept)
+
+    for (i in 1:ndept) {
+      Forwardprob<- matrix(NA, nrow = time, ncol = nstate)
+      if(y[i, 1] == -1){
+        alpha.1 <- init_density[1]
+        alpha.2 <- init_density[2]
+      }else{
+        alpha.1 <- init_density[1] + dpois(y[i, 1], lambda = e_it[i, 1] * exp(r[1] + s[1] + u[i]), log = TRUE)
+        alpha.2 <- init_density[2] + dpois(y[i, 1], lambda = e_it[i, 1] * exp(r[1] + s[1] + u[i] + B[1] * z_it[i,1] + B[2] * z_it2[i,1]), log = TRUE)
+      }
+
+      Forwardprob[1, ] <- c(alpha.1, alpha.2)
+
+      for (t in 2:time) {
+        if(y[i, t] == -1){
+          Alphas<- c(alpha.1, alpha.2)
+          alpha.1 <- logSumExp_cpp(c(Alphas[1] + gamma_11))
+          alpha.2 <- logSumExp_cpp(c(Alphas[1] + gamma_12))
+          Forwardprob[t, ] <- c(alpha.1, alpha.2)
+        }else{
+          month_index<- (t - 1) %% 12 + 1
+          Alphas<- c(alpha.1, alpha.2)
+          alpha.1 <- logSumExp_cpp(c(Alphas[1] + gamma_11 + dpois(y[i, t], lambda = e_it[i, t] * exp(r[t] + s[month_index] + u[i]), log = TRUE), Alphas[2] + gamma_21 + dpois(y[i, t], lambda = e_it[i, t] * exp(r[t] + s[month_index] + u[i]), log = TRUE)))
+          alpha.2 <- logSumExp_cpp(c(Alphas[1] + gamma_12 + dpois(y[i, t], lambda = e_it[i, t] * exp(r[t] + s[month_index] + u[i] + B[1] * z_it[i,t] + B[2] * z_it2[i,t]), log = TRUE), Alphas[2] + gamma_22 + dpois(y[i, t], lambda = e_it[i, t] * exp(r[t] + s[month_index] + u[i] + B[1] * z_it[i,t] + B[2] * z_it2[i,t]), log = TRUE)))
+          Forwardprob[t, ] <- c(alpha.1, alpha.2)
+        }
+      }
+      AllForwardprobs[[i]]<- Forwardprob
+    }
+
+    return(AllForwardprobs)
+  }
+}
+
+state_prediction<- function(forecastlength, y, e_it, r, s, u, Gamma, B, Model, adjmat){
+  ndept<- nrow(y)
+  time<- ncol(y)
+  unmlfp<- forwardfilter2(y, e_it, r, s, u, Gamma, B, Model, adjmat)
+  Allstatepreds<- matrix(NA, nrow = ndept, ncol = forecastlength)
+  for(i in 1:ndept){
+    la<- t(unmlfp[[i]])
+    Maxla <- max(la[,time])
+    llk <- Maxla + log(sum(exp(la[,time] - Maxla)))
+    statepreds <- numeric(forecastlength)
+    nmlfp<- exp(la[,time] - llk)
+    for(f in 1:forecastlength){
+      nmlfp <- nmlfp %*% Gamma
+      statepreds[f] <- nmlfp[2]
+    }
+    Allstatepreds[i, ]<- statepreds
+  }
+  return(Allstatepreds)
+}
+
+logI<- function(theta, Model, speed, y, e_it, z_it, z_it2, SMat, R, rankdef, mu, varcov){
+  time<- ncol(y)
+  ndept<- nrow(y)
+
+  if(Model==0){
+    if(theta[1] <= 0 || theta[2] <= 0 || theta[3]<= 0){
+      estimate<- -Inf
+    }else{
+      Gammas<- c(0.5, 0.5)
+      G_mat<- matrix(c(1-Gammas[1], Gammas[1], Gammas[2], 1-Gammas[2]), nrow = length(Gammas), byrow = T)
+      kappaR<- theta[1]
+      kappaS<- theta[2]
+      kappaU<- theta[3]
+      r<- theta[3+(1:time)]
+      s<- theta[3+time+(1:12)]
+      u<- theta[3+time+12+(1:ndept)]
+      ARcoeff<- 0
+      log_lik<- GeneralLoglikelihood_cpp2(y=y, r=r, s=s, u=u, Gamma=G_mat, e_it=e_it, B = ARcoeff, model = Model, z_it=z_it, z_it2=z_it2)
+      log_prior<- sum(dgamma(c(kappaR, kappaS), shape = c(1, 1), rate = c(0.0001, 0.001), log = TRUE)) +
+        dgamma(kappaU, shape = 1, rate = 0.01, log = TRUE) +
+        randomwalk2(r, kappaR) +
+        seasonalComp2(s, kappaS, SMat) +
+        logIGMRF1(u, kappaU, R, rankdef)
+      if(speed==1){
+        log_proposal<- mvnfast::dmvt(theta, mu = mu, sigma = varcov, df = 3, log = TRUE)
+      }else{
+        log_proposal<- mvtnorm::dmvt(theta, delta = mu, sigma = varcov, df = 3, log = TRUE)
+      }
+      #print(paste("log_lik is ", log_lik))
+      #print(paste("log_prior is ", log_prior))
+      #print(paste("log_proposal is ", log_proposal))
+      estimate<- log_lik + log_prior - log_proposal
+    }
+  }else if(Model %in% c(1,2,3,4,5,6,7)){
+    if(theta[1] <= 0 || theta[1] >= 1 ||theta[2] <= 0 || theta[2] >= 1 || theta[3] <= 0 || theta[4] <= 0 || theta[5]<= 0){
+      estimate<- -Inf
+    }else{
+      Gammas<- theta[1:2]
+      G_mat<- matrix(c(1-Gammas[1], Gammas[1], Gammas[2], 1-Gammas[2]), nrow = length(Gammas), byrow = T)
+      kappaR<- theta[3]
+      kappaS<- theta[4]
+      kappaU<- theta[5]
+      r<- theta[5+(1:time)]
+      s<- theta[5+time+(1:12)]
+      u<- theta[5+time+12+(1:ndept)]
+      if(Model %in% c(3, 6)){
+        ARcoeff<- theta[5+time+12+ndept+(1:2)]
+      }else{
+        ARcoeff<- theta[5+time+12+ndept+1]
+      }
+      log_lik<- GeneralLoglikelihood_cpp2(y=y, r=r, s=s, u=u, Gamma=G_mat, e_it=e_it, B = ARcoeff, model = Model, z_it=z_it, z_it2=z_it2)
+      log_prior<- (sum(dbeta(Gammas, shape1 = c(2, 2), shape2 = c(2, 2), log = TRUE)) +
+                     sum(dgamma(c(kappaR, kappaS), shape = c(1, 1), rate = c(0.0001, 0.001), log = TRUE)) +
+                     dgamma(kappaU, shape = 1, rate = 0.01, log = TRUE) +
+                     randomwalk2(r, kappaR) +
+                     seasonalComp2(s, kappaS, SMat) +
+                     logIGMRF1(u, kappaU, R, rankdef) +
+                     sum(dgamma(ARcoeff, shape = rep(2, length(ARcoeff)), rate = rep(2, length(ARcoeff)), log = TRUE)))
+      if(speed==1){
+        log_proposal<- mvnfast::dmvt(theta, mu = mu, sigma = varcov, df = 3, log = TRUE)
+      }else{
+        log_proposal<- mvtnorm::dmvt(theta, delta = mu, sigma = varcov, df = 3, log = TRUE)
+      }
+      estimate<- log_lik + log_prior - log_proposal
+    }
+  }
+  return(estimate)
+}
+
