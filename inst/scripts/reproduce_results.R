@@ -84,7 +84,7 @@ for(i in 1:8){
 
 # Heat-maps for application (Figure 7 in paper)
 alldata<- list(y, e_it, colnames(Adjmat))
-DetectOutbreaks:::publicationfig7(all.infobjects=Applicationfits, realdata=alldata, adjmat=sim_adjmat)
+DetectOutbreaks:::publicationfig7(all.infobjects=Applicationfits, realdata=alldata, adjmat=Adjmat)
 
 # Posterior median relative risks (Figure 8 in paper)
 DetectOutbreaks:::publicationfig8(all.infobjects=Applicationfits)
@@ -109,7 +109,7 @@ DetectOutbreaks:::publicationfigS2(all.infobjects=Simulationfits, all.simobjects
 DetectOutbreaks:::publicationfigS3(all.infobjects=Excessfits, all.simobjects=Allsim, adjmat=sim_adjmat)
 
 # Posterior predictive fits for application (Figure S4)
-DetectOutbreaks:::publicationfigS4(all.infobjects=Applicationfits,  realdata=alldata, adjmat=sim_adjmat)
+DetectOutbreaks:::publicationfigS4(all.infobjects=Applicationfits,  realdata=alldata, adjmat=Adjmat)
 
 # Correlogram for posterior probabilities of outbreak from models I-VII (Figure S5 in paper)
 OutP<- list()
@@ -118,5 +118,5 @@ for(i in 1:7){
   Model<- i
   OutP[[i]]<- DetectOutbreaks::OutbreakProbability(y=y, e_it=e_it,inf.object=Currentfit, adjmat=Adjmat, Model=Model)
 }
-OutPdf<- data.frame(mod1=c(OutP[[1]]), mod1=c(OutP[[1]]), mod2=c(OutP[[2]]), mod3=c(OutP[[3]]), mod4=c(OutP[[4]]), mod5=c(OutP[[5]]), mod6=c(OutP[[6]]), mod7=c(OutP[[7]]))
+OutPdf<- data.frame(mod1=c(OutP[[1]]), mod2=c(OutP[[2]]), mod3=c(OutP[[3]]), mod4=c(OutP[[4]]), mod5=c(OutP[[5]]), mod6=c(OutP[[6]]), mod7=c(OutP[[7]]))
 ggpairs(OutPdf, diag = list(continuous = "blankDiag"), columnLabels = c("Model I", "Model II", "Model III","Model IV","Model V","Model VI","Model VII"))
