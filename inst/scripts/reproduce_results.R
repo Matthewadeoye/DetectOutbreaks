@@ -1,3 +1,7 @@
+#Set up Stan
+install.packages("cmdstanr", repos = c("https://mc-stan.org/r-packages/", getOption("repos")))
+library(cmdstanr)
+install_cmdstan()
 # install our new package - DetectOutbreaks, and other packages for figures
 devtools::install_github("Matthewadeoye/DetectOutbreaks")
 packages<- c("gdata","pROC", "ggplot2", "sf", "dplyr", "RColorBrewer", "cshapes", "GGally")
@@ -36,7 +40,7 @@ for(i in 1:8){
   Simulationfits[[i]]<- HMCFit
 }
 
-# Posterior fits and intervals (Figure 3 in paper)
+# Posterior fits and credible intervals (Figure 3 in paper)
 DetectOutbreaks:::publicationfig3(all.infobjects=Simulationfits, all.simobjects=Allsim, adjmat=sim_adjmat)
 
 # Log-marginal likelihoods for simulation study (Table 3 in paper)
