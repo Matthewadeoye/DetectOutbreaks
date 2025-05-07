@@ -3,7 +3,7 @@
 \docType{data}
 \name{ApplicationPopulation}
 \alias{ApplicationPopulation}
-\title{Interpolated monthly population counts for 28 European countries (Eurostat, 2024).}
+\title{Interpolated monthly population counts for the selected 28 European countries (Eurostat, 2024).}
 \format{
 A matrix with 28 rows and 84 columns
 \describe{
@@ -15,5 +15,5 @@ A matrix with 28 rows and 84 columns
 data(ApplicationPopulation)
 }
 \description{
-Interpolated monthly population counts for 28 European countries (Eurostat, 2024).
+Interpolated monthly population counts for the selected 28 European countries (Eurostat, 2024).
 }

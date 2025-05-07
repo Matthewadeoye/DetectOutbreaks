@@ -3,7 +3,7 @@
 \docType{data}
 \name{ApplicationAdjMat}
 \alias{ApplicationAdjMat}
-\title{Connectivity of European countries based on capital-city distance less than or equal to 820 km (Cshapes R package).}
+\title{Connectivity of selected European countries based on capital-city distance being less than or equal to 820 km (from Cshapes R-package).}
 \format{
 A matrix with 28 rows and 28 columns
 \describe{
@@ -15,5 +15,5 @@ A matrix with 28 rows and 28 columns
 data(ApplicationAdjMat)
 }
 \description{
-Connectivity of European countries based on capital-city distance less than or equal to 820 km (Cshapes R package).
+Connectivity of selected European countries based on capital-city distance being less than or equal to 820 km (from Cshapes R-package).
 }

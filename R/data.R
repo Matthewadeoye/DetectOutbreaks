@@ -10,7 +10,7 @@
 #' }
 NULL
 
-#'  Interpolated monthly population counts for 28 European countries (Eurostat, 2024).
+#'  Interpolated monthly population counts for the selected 28 European countries (Eurostat, 2024).
 #'
 #' @docType data
 #' @name ApplicationPopulation
@@ -23,7 +23,7 @@ NULL
 NULL
 
 
-#'  Connectivity of European countries based on capital-city distance less than or equal to 820 km (Cshapes R package).
+#'  Connectivity of selected European countries based on capital-city distance being less than or equal to 820 km (from Cshapes R-package).
 #'
 #' @docType data
 #' @name ApplicationAdjMat
